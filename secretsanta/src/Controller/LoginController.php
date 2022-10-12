@@ -13,7 +13,7 @@ class LoginController extends AbstractController
     #[Route('/login', name: 'app_login')]
     public function index(AuthenticationUtils $authenticationUtils): Response
     {
-         // get the login error if there is one
+         // get the login error if there is one²²
          $error = $authenticationUtils->getLastAuthenticationError();
 
          // last username entered by the user
@@ -23,6 +23,13 @@ class LoginController extends AbstractController
              'last_username' => $lastUsername,
             'error'         => $error,
         ]);
+    }
+    
+    #[Route('/logout', name: 'app_logout', methods: ['GET'])]
+    public function logout()
+    {
+        // controller can be blank: it will never be called!
+        throw new \Exception('Don\'t forget to activate logout in security.yaml');
     }
 }
 
