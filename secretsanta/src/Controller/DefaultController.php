@@ -2,9 +2,15 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Entity\Gift;
+use App\Entity\User;
+use App\Entity\Event;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 class DefaultController extends AbstractController
 {
@@ -15,5 +21,27 @@ class DefaultController extends AbstractController
             'message' => 'Welcome to your new controller!',
             'path' => 'src/Controller/DefaultController.php',
         ]);
+    }
+    #[Route('/gift/:id')]
+    public function makeGift($userId, EntityManagerInterface $entityManager, Request $request) {
+
+        $user = $entityManager->getRepository(User::class)->find($userId);  
+        $event = $entityManager->getRepository(Event::class)->findAll();
+        if ($user->getHasGift()) {
+            if ($request->isMethod('POST')) {
+                $gift = new Gift();
+                $gift->setMessage($request->request->get('message'));
+                $gift->setUserId($userId);
+                $gift->getPrice($request->request->get('price'));
+                $gift->setName($request->request->get('name'));
+                $gift->setVerified(0);
+                $gift->setIdEvent($request->request->get('eventId'));
+
+                $entityManager->persist($gift);
+                $this->addFlash('success', 'Cadeau envoyé ! En attente de confirmation administrateur.'); 
+                return $this->redirectToRoute('app_login');
+            }
+        }
+        $this->addFlash('error', 'Vous n\'avez pas de crédits'); 
     }
 }
