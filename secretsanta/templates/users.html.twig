@@ -1,0 +1,30 @@
+{# templates/login/index.html.twig #}
+{% extends 'base.html.twig' %}
+
+{# ... #}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+    <h1 class="mb-2"> Tous les utilisateurs </h1>
+{% for user in users %}
+
+            <div class="col-4 mt-3 mb-2">
+                <div class="card" style="width: 18rem;">
+                    <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">{{user.nom}} {{user.prenom}}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{user.formation}}</h6>
+                            <a href="#" class="btn mr-2"><i class="fas fa-link"></i> Voir profil</a>
+                            <a href="#" class="btn "><i class="fab fa-github"></i> Offrir cadeau</a>
+                        </div>
+                </div>
+            </div>    
+{% endfor %}
+        <div class="d-flex justify-content-center">
+            {% do users.setPageRange(2) %}
+            {{ knp_pagination_render(users, 'pagination.html.twig')}}
+        </div>
+    </div>
+</div>
+{% endblock %}

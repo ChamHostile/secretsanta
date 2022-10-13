@@ -5,8 +5,11 @@ namespace App\Controller;
 use App\Entity\Gift;
 use App\Entity\User;
 use App\Entity\Event;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Knp\Component\Pager\PaginatorInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -43,5 +46,22 @@ class DefaultController extends AbstractController
             }
         }
         $this->addFlash('error', 'Vous n\'avez pas de crédits'); 
+    }
+
+    #[Route('/users')]
+    public function usersPage(
+        UserRepository $userRepository
+        , PaginatorInterface $paginator,
+        Request $request) {
+        $data = $userRepository->findAll();  
+        $users = $paginator->paginate(
+            $data,
+            $request->query->getInt('page', 1),
+            6
+        );
+        
+        return $this->render('users.html.twig', [
+            'users' => $users
+        ]);
     }
 }
