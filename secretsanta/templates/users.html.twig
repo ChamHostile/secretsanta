@@ -8,7 +8,7 @@
     <div class="row">
     <h1 class="mb-2"> Tous les utilisateurs </h1>
 {% for user in users %}
-
+    {% if user.getIdGift()|length == 0 %}
             <div class="col-4 mt-3 mb-2">
                 <div class="card" style="width: 18rem;">
                     <img src="https://i.imgur.com/ZTkt4I5.jpg" class="card-img-top" alt="...">
@@ -20,6 +20,7 @@
                         </div>
                 </div>
             </div>    
+    {% endif %}
 {% endfor %}
         <div class="d-flex justify-content-center">
             {% do users.setPageRange(2) %}

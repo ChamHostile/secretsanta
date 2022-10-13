@@ -5,6 +5,8 @@ namespace App\Controller;
 use App\Entity\Gift;
 use App\Entity\User;
 use App\Entity\Event;
+use App\Repository\EventRepository;
+use App\Repository\GiftRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -25,33 +27,45 @@ class DefaultController extends AbstractController
             'path' => 'src/Controller/DefaultController.php',
         ]);
     }
-    #[Route('/gift/:id')]
-    public function makeGift($userId, EntityManagerInterface $entityManager, Request $request) {
+    #[Route('/gift/{id}', name: 'gift_to_user')]
+    public function makeGift($id, EntityManagerInterface $entityManager, Request $request) {
+        $userAuthenticated = $this->getUser();
 
-        $user = $entityManager->getRepository(User::class)->find($userId);  
-        $event = $entityManager->getRepository(Event::class)->findAll();
-        if ($user->getHasGift()) {
+        $user = $entityManager->getRepository(User::class)->find($id); 
+ 
+        if ($user->isHasCredit()) {
             if ($request->isMethod('POST')) {
                 $gift = new Gift();
                 $gift->setMessage($request->request->get('message'));
-                $gift->setUserId($userId);
-                $gift->getPrice($request->request->get('price'));
+                $gift->setUserId($user);
+                $gift->setPrice($request->request->get('price'));
                 $gift->setName($request->request->get('name'));
                 $gift->setVerified(0);
-                $gift->setIdEvent($request->request->get('eventId'));
+                $event = $entityManager->getRepository(Event::class)->find($request->request->get('eventId'));  
+                $gift->setIdEvent($event);
 
                 $entityManager->persist($gift);
+                $user->addIdGift($gift);
+                $userAuthenticated->setHasCredit(0);
+                $entityManager->persist($gift);
+                $entityManager->persist($user);
+                $entityManager->persist($userAuthenticated);
+
+                $entityManager->flush();
+
                 $this->addFlash('success', 'Cadeau envoyé ! En attente de confirmation administrateur.'); 
-                return $this->redirectToRoute('app_login');
+                return $this->redirectToRoute('gift_to_user', ['id' => $id]);
             }
         }
+        return $this->redirectToRoute('gift_to_user', ['id' => $id]);
+
         $this->addFlash('error', 'Vous n\'avez pas de crédits'); 
     }
 
     #[Route('/users')]
     public function usersPage(
         UserRepository $userRepository
-        , PaginatorInterface $paginator,
+        , GiftRepository $giftRepository, PaginatorInterface $paginator,
         Request $request) {
         $data = $userRepository->findAll();  
         $users = $paginator->paginate(
@@ -62,6 +76,20 @@ class DefaultController extends AbstractController
         
         return $this->render('users.html.twig', [
             'users' => $users
+        ]);
+    }
+
+    #[Route('/user/{id}')]
+    public function userProfile($id,
+        UserRepository $userRepository,
+        EventRepository $eventRepository,
+        Request $request) {
+        $data = $userRepository->find($id);  
+        $event = $eventRepository->findAll();
+
+        return $this->render('user-profile.html.twig', [
+            'user' => $data,
+            'event' => $event
         ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\UserRepository;
@@ -60,6 +61,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'boolean')]
     private $isVerified = false;
+
+    public function __construct()
+    {
+        $this->id_gift = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -215,22 +221,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getIdEvent(): ?Gift
-    {
-        return $this->id_gift;
-    }
-
-    public function setIdEvent(Gift $id_event): self
-    {
-        // set the owning side of the relation if necessary
-        if ($id_event->getUserId() !== $this) {
-            $id_event->setUserId($this);
-        }
-
-        $this->id_event = $id_event;
-
-        return $this;
-    }
 
     public function isVerified(): bool
     {
@@ -240,6 +230,41 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsVerified(bool $isVerified): self
     {
         $this->isVerified = $isVerified;
+
+        return $this;
+    }
+
+    public function isIsVerified(): ?bool
+    {
+        return $this->isVerified;
+    }
+
+    /**
+     * @return Collection<int, Gift>
+     */
+    public function getIdGift(): Collection
+    {
+        return $this->id_gift;
+    }
+
+    public function addIdGift(Gift $idGift): self
+    {
+        if (!$this->id_gift->contains($idGift)) {
+            $this->id_gift->add($idGift);
+            $idGift->setUserId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeIdGift(Gift $idGift): self
+    {
+        if ($this->id_gift->removeElement($idGift)) {
+            // set the owning side to null (unless already changed)
+            if ($idGift->getUserId() === $this) {
+                $idGift->setUserId(null);
+            }
+        }
 
         return $this;
     }
